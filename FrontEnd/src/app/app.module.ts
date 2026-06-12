@@ -8,6 +8,7 @@ import { SocialComponent } from './components/social/social.component';
 import { BannerComponent } from './components/banner/banner.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AboutComponent } from './components/about/about.component';
+import { HabitTrackerComponent } from './components/habit-tracker/habit-tracker.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { AboutComponent } from './components/about/about.component';
     LogoAPComponent,
     SocialComponent,
     BannerComponent,
-    AboutComponent
+    AboutComponent,
+    HabitTrackerComponent
   ],
   imports: [
     BrowserModule,

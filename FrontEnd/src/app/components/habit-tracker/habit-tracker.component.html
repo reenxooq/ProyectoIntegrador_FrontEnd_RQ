@@ -1,0 +1,158 @@
+<section class="habit-tracker-section">
+  <div class="container-fluid px-3 px-md-4">
+
+    <!-- ── HEADER ── -->
+    <div class="tracker-header">
+      <div class="challenge-badge">
+        <div class="day-display">
+          <span class="day-label">DÍA</span>
+          <span class="day-number">{{ currentDay }}</span>
+          <span class="day-total">/{{ totalDays }}</span>
+        </div>
+        <div class="challenge-info">
+          <h2 class="challenge-name">{{ challengeName }}</h2>
+          <p class="challenge-date">📅 {{ getFormattedDate() }}</p>
+        </div>
+      </div>
+      <div class="challenge-progress-wrap">
+        <div class="progress-track-thin">
+          <div class="progress-fill-thin" [style.width.%]="getChallengeProgress()"></div>
+        </div>
+        <span class="progress-label-small">{{ getChallengeProgress() }}% del reto completado</span>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- ── CHECKLIST ── -->
+      <div class="col-12 col-lg-4">
+        <div class="tracker-card">
+          <div class="card-top-row">
+            <h3 class="card-title">✅ Hábitos de Hoy</h3>
+            <span class="stat-badge">{{ getCompletedTodayCount() }}/{{ habits.length }}</span>
+          </div>
+
+          <div class="today-progress-row">
+            <div class="progress-track">
+              <div class="progress-fill" [style.width.%]="getTodayProgress()"></div>
+            </div>
+            <span class="progress-pct">{{ getTodayProgress() }}%</span>
+          </div>
+
+          <div class="habits-list">
+            <div
+              *ngFor="let habit of habits"
+              class="habit-item"
+              [class.completed]="isCompletedToday(habit)"
+              (click)="toggleHabit(habit)"
+            >
+              <span class="check-icon">{{ isCompletedToday(habit) ? '✅' : '⬜' }}</span>
+              <span class="habit-emoji">{{ habit.emoji }}</span>
+              <span class="habit-name">{{ habit.name }}</span>
+              <button
+                class="remove-btn"
+                (click)="removeHabit(habit.id); $event.stopPropagation()"
+                title="Eliminar hábito"
+              >✕</button>
+            </div>
+          </div>
+
+          <div class="add-habit-section">
+            <button class="add-toggle-btn" (click)="showAddForm = !showAddForm">
+              {{ showAddForm ? '✕ Cancelar' : '+ Agregar hábito' }}
+            </button>
+
+            <div *ngIf="showAddForm" class="add-form">
+              <div class="form-row">
+                <input
+                  class="emoji-input"
+                  [value]="newHabitEmoji"
+                  (input)="newHabitEmoji = $any($event.target).value"
+                  placeholder="😊"
+                  maxlength="2"
+                />
+                <input
+                  class="name-input"
+                  [value]="newHabitName"
+                  (input)="newHabitName = $any($event.target).value"
+                  placeholder="Nombre del hábito..."
+                  (keydown.enter)="addHabit()"
+                />
+                <button class="confirm-add-btn" (click)="addHabit()">Agregar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MONTHLY GRID ── -->
+      <div class="col-12 col-lg-8">
+        <div class="tracker-card calendar-card">
+          <div class="card-top-row">
+            <h3 class="card-title">📅 {{ getMonthName() }}</h3>
+            <span class="grid-hint">Clic en celda para marcar/desmarcar</span>
+          </div>
+
+          <div class="calendar-scroll">
+            <table class="habit-table">
+              <thead>
+                <tr>
+                  <th class="habit-th">Hábito</th>
+                  <th
+                    *ngFor="let day of daysInMonth"
+                    class="day-th"
+                    [class.today-th]="day === today.getDate()"
+                  >{{ day }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let habit of habits">
+                  <td class="habit-name-td">
+                    <span class="row-emoji">{{ habit.emoji }}</span>{{ habit.name }}
+                  </td>
+                  <td
+                    *ngFor="let day of daysInMonth"
+                    class="day-cell"
+                    [class.cell-completed]="isCompletedOnDay(habit, day)"
+                    [class.cell-future]="isFutureDay(day)"
+                    [class.cell-today]="day === today.getDate()"
+                    (click)="toggleDayCell(habit, day)"
+                  >
+                    <span *ngIf="isCompletedOnDay(habit, day)" class="cell-check">✓</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Summary bars -->
+          <div class="month-summary">
+            <div class="summary-spacer"></div>
+            <div
+              *ngFor="let day of daysInMonth"
+              class="day-summary"
+              [title]="day + ': ' + getMonthCompletionRate(day) + '%'"
+            >
+              <div
+                class="summary-bar"
+                [style.height.%]="getMonthCompletionRate(day)"
+                [class.s-high]="getMonthCompletionRate(day) >= 80"
+                [class.s-mid]="getMonthCompletionRate(day) >= 40 && getMonthCompletionRate(day) < 80"
+                [class.s-low]="getMonthCompletionRate(day) > 0 && getMonthCompletionRate(day) < 40"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="legend">
+            <span class="legend-item"><span class="legend-dot s-high"></span>≥80%</span>
+            <span class="legend-item"><span class="legend-dot s-mid"></span>40–79%</span>
+            <span class="legend-item"><span class="legend-dot s-low"></span>&lt;40%</span>
+            <span class="legend-item"><span class="legend-dot cell-future-dot"></span>Sin datos</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
