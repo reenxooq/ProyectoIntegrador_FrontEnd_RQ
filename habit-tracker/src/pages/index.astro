@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reto 100 Días</title>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- HEADER -->
+  <header class="tracker-header">
+    <div class="challenge-badge">
+      <div class="day-display">
+        <span class="day-label">DÍA</span>
+        <span class="day-number" id="dayNumber">1</span>
+        <span class="day-total">/100</span>
+      </div>
+      <div class="challenge-info">
+        <h1 id="challengeName">Reto de Verano</h1>
+        <p id="challengeDate"></p>
+      </div>
+    </div>
+    <div class="header-progress">
+      <div class="progress-track">
+        <div class="progress-fill" id="challengeProgressBar"></div>
+      </div>
+      <span id="challengeProgressLabel"></span>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-grid">
+
+    <!-- CHECKLIST -->
+    <section class="card checklist-card">
+      <div class="card-head">
+        <h2>✅ Hábitos de Hoy</h2>
+        <span class="badge" id="todayBadge">0/0</span>
+      </div>
+      <div class="day-progress-row">
+        <div class="progress-track">
+          <div class="progress-fill" id="dayProgressBar"></div>
+        </div>
+        <span id="dayProgressPct">0%</span>
+      </div>
+      <ul id="habitList" class="habit-list"></ul>
+      <div class="add-section">
+        <button id="toggleAddBtn" class="add-toggle-btn">+ Agregar hábito</button>
+        <div id="addForm" class="add-form hidden">
+          <div class="form-row">
+            <input id="newEmoji" class="emoji-input" maxlength="2" placeholder="😊" value="⭐" />
+            <input id="newName" class="name-input" placeholder="Nombre del hábito..." />
+            <button id="confirmAddBtn" class="confirm-btn">Agregar</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MONTHLY GRID -->
+    <section class="card calendar-card">
+      <div class="card-head">
+        <h2 id="monthTitle">📅 Mes</h2>
+        <span class="hint">Clic en celda para marcar</span>
+      </div>
+      <div class="table-wrap">
+        <table id="habitTable">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div id="summaryBars" class="summary-bars"></div>
+      <div class="legend">
+        <span><span class="dot green"></span>≥80%</span>
+        <span><span class="dot yellow"></span>40–79%</span>
+        <span><span class="dot red"></span>&lt;40%</span>
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #090e1a;
+    color: #f0f2f8;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+  }
+
+  #app { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+
+  /* HEADER */
+  .tracker-header {
+    background: linear-gradient(135deg, #111827, #1a2540);
+    border: 1px solid #1e2d45;
+    border-radius: 18px;
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .challenge-badge { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+  .day-display {
+    display: flex; align-items: baseline; gap: 0.15rem;
+    background: #00e676; color: #001a0a;
+    padding: 0.5rem 1.1rem; border-radius: 14px; font-weight: 700;
+  }
+  .day-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: .12em; }
+  .day-number { font-size: 2.6rem; font-weight: 900; line-height: 1; }
+  .day-total { font-size: 1rem; opacity: .65; }
+  .challenge-info h1 { font-size: 1.7rem; font-weight: 800; color: #00e676; letter-spacing: -.02em; }
+  .challenge-info p { color: #94a3b8; font-size: .875rem; margin-top: .2rem; text-transform: capitalize; }
+  .header-progress { display: flex; flex-direction: column; gap: .3rem; }
+  .header-progress span { color: #94a3b8; font-size: .8rem; }
+
+  /* PROGRESS TRACKS */
+  .progress-track { background: #1e2d45; border-radius: 999px; height: 8px; overflow: hidden; flex: 1; }
+  .progress-fill { background: linear-gradient(90deg, #00e676, #69f0ae); height: 100%; border-radius: 999px; transition: width .4s ease; width: 0%; }
+
+  /* MAIN GRID */
+  .main-grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.5rem; align-items: start; }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* CARD */
+  .card { background: #111827; border: 1px solid #1e2d45; border-radius: 18px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+  .card-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem; }
+  .card-head h2 { font-size: 1.05rem; font-weight: 700; color: #f1f5f9; }
+  .badge { background: #00e676; color: #001a0a; padding: .2rem .75rem; border-radius: 999px; font-size: .82rem; font-weight: 800; }
+  .hint { font-size: .72rem; color: #4b6380; }
+
+  /* DAY PROGRESS */
+  .day-progress-row { display: flex; align-items: center; gap: .75rem; }
+  .day-progress-row span { font-size: .82rem; color: #00e676; font-weight: 700; min-width: 38px; text-align: right; }
+
+  /* HABIT LIST */
+  .habit-list { list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+  .habit-item {
+    display: flex; align-items: center; gap: .65rem;
+    padding: .55rem .75rem; border-radius: 11px;
+    background: #1a2332; border: 1px solid transparent;
+    cursor: pointer; transition: all .18s; user-select: none;
+  }
+  .habit-item:hover { background: #1e2d45; border-color: #2d3f5a; }
+  .habit-item.done { background: #042215; border-color: #00b459; }
+  .habit-item .check { font-size: 1rem; flex-shrink: 0; }
+  .habit-item .emoji { font-size: 1.1rem; flex-shrink: 0; }
+  .habit-item .name { flex: 1; font-size: .875rem; color: #cbd5e1; }
+  .habit-item.done .name { color: #00e676; }
+  .habit-item .remove-btn {
+    background: none; border: none; color: #334155;
+    cursor: pointer; font-size: .7rem; opacity: 0; transition: all .15s;
+  }
+  .habit-item:hover .remove-btn { opacity: 1; color: #ef4444; }
+
+  /* ADD SECTION */
+  .add-toggle-btn {
+    width: 100%; background: transparent; color: #64748b;
+    border: 1px dashed #2d3f5a; border-radius: 11px;
+    padding: .6rem; cursor: pointer; font-size: .85rem; transition: all .2s;
+  }
+  .add-toggle-btn:hover { background: #1a2332; color: #e2e8f0; border-color: #4b6380; }
+  .add-form { margin-top: .65rem; }
+  .form-row { display: flex; gap: .5rem; }
+  .emoji-input {
+    width: 52px; background: #1a2332; border: 1px solid #2d3f5a;
+    color: #f1f5f9; border-radius: 9px; padding: .5rem;
+    text-align: center; font-size: 1.1rem; flex-shrink: 0;
+  }
+  .name-input {
+    flex: 1; background: #1a2332; border: 1px solid #2d3f5a;
+    color: #f1f5f9; border-radius: 9px; padding: .5rem .75rem; font-size: .85rem;
+  }
+  .emoji-input:focus, .name-input:focus { outline: none; border-color: #00e676; }
+  .confirm-btn {
+    background: #00e676; color: #001a0a; border: none;
+    border-radius: 9px; padding: .5rem 1rem; font-weight: 800;
+    cursor: pointer; font-size: .85rem; transition: all .18s; white-space: nowrap;
+  }
+  .confirm-btn:hover { background: #69f0ae; }
+  .hidden { display: none !important; }
+
+  /* CALENDAR */
+  .calendar-card { overflow: hidden; }
+  .table-wrap { overflow-x: auto; border-radius: 10px; }
+  .table-wrap::-webkit-scrollbar { height: 5px; }
+  .table-wrap::-webkit-scrollbar-track { background: #1a2332; border-radius: 999px; }
+  .table-wrap::-webkit-scrollbar-thumb { background: #2d3f5a; border-radius: 999px; }
+
+  table { border-collapse: collapse; min-width: 600px; width: 100%; }
+  thead th { background: #1a2332; color: #64748b; font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; border-bottom: 1px solid #1e2d45; padding: .5rem .3rem; text-align: center; }
+  thead th.habit-th { text-align: left; padding-left: .75rem; min-width: 170px; }
+  thead th.today-col { color: #00e676; font-weight: 800; }
+  tbody td { border-bottom: 1px solid #141e2e; vertical-align: middle; }
+  tbody td.habit-name-td { padding: .45rem .75rem; font-size: .78rem; color: #94a3b8; white-space: nowrap; background: #111827; }
+  tbody td.day-cell {
+    text-align: center; height: 30px; min-width: 26px;
+    cursor: pointer; transition: background .12s; font-size: .75rem; color: #00e676;
+    border-right: 1px solid #141e2e;
+  }
+  tbody td.day-cell:hover:not(.future) { background: #1e2d45; }
+  tbody td.day-cell.done { background: #042215; }
+  tbody td.day-cell.future { opacity: .2; cursor: default; }
+  tbody td.day-cell.today-col { box-shadow: inset 2px 0 0 #00e676, inset -2px 0 0 #00e676; }
+
+  /* SUMMARY BARS */
+  .summary-bars {
+    display: flex; align-items: flex-end;
+    height: 36px; gap: 1px; padding-top: 4px;
+  }
+  .summary-spacer { min-width: 170px; flex-shrink: 0; }
+  .summary-col { flex: 1; height: 100%; display: flex; align-items: flex-end; min-width: 26px; }
+  .summary-bar { width: 100%; min-height: 3px; border-radius: 3px 3px 0 0; background: #1e2d45; transition: height .3s; }
+  .summary-bar.green  { background: #00e676; }
+  .summary-bar.yellow { background: #fbbf24; }
+  .summary-bar.red    { background: #f87171; }
+
+  /* LEGEND */
+  .legend { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: .4rem; font-size: .72rem; color: #64748b; }
+  .dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .dot.green  { background: #00e676; }
+  .dot.yellow { background: #fbbf24; }
+  .dot.red    { background: #f87171; }
+</style>
+
+<script>
+  const STORAGE_KEY = 'habit-tracker-v2';
+  const TODAY = new Date();
+  const TODAY_D = TODAY.getDate();
+  const MONTH   = TODAY.getMonth();
+  const YEAR    = TODAY.getFullYear();
+
+  const DEFAULT_HABITS = [
+    { id: 1, name: 'Despertar temprano', emoji: '🌅', days: [] },
+    { id: 2, name: 'Ejercicio (1 hora)',  emoji: '💪', days: [] },
+    { id: 3, name: 'Trabajo profundo',    emoji: '🧠', days: [] },
+    { id: 4, name: 'Leer 20 páginas',     emoji: '📖', days: [] },
+    { id: 5, name: 'No procrastinar',     emoji: '🚫', days: [] },
+    { id: 6, name: 'Meditar 20 min',      emoji: '🧘', days: [] },
+    { id: 7, name: 'Hacer journaling',    emoji: '✍️', days: [] },
+    { id: 8, name: 'Comer saludable',     emoji: '🍎', days: [] },
+    { id: 9, name: 'Crear contenido',     emoji: '📱', days: [] },
+  ];
+
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return {
+      habits: DEFAULT_HABITS.map(h => ({ ...h, days: [] })),
+      challengeName: 'Reto de Verano',
+      startDate: new Date(2026, 5, 1).toISOString(),
+    };
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  function currentDay() {
+    const start = new Date(state.startDate);
+    const diff = Math.floor((TODAY - start) / 86400000) + 1;
+    return Math.max(1, Math.min(diff, 100));
+  }
+
+  function daysInMonth() {
+    return new Date(YEAR, MONTH + 1, 0).getDate();
+  }
+
+  function monthDays() {
+    return Array.from({ length: daysInMonth() }, (_, i) => i + 1);
+  }
+
+  function renderHeader() {
+    const day = currentDay();
+    document.getElementById('dayNumber').textContent = day;
+    document.getElementById('challengeName').textContent = state.challengeName;
+    document.getElementById('challengeDate').textContent =
+      '📅 ' + TODAY.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const pct = Math.round(day / 100 * 100);
+    document.getElementById('challengeProgressBar').style.width = pct + '%';
+    document.getElementById('challengeProgressLabel').textContent = pct + '% del reto completado';
+  }
+
+  function renderChecklist() {
+    const ul = document.getElementById('habitList');
+    ul.innerHTML = '';
+    const total  = state.habits.length;
+    const done   = state.habits.filter(h => h.days.includes(TODAY_D)).length;
+    const pct    = total ? Math.round(done / total * 100) : 0;
+
+    document.getElementById('todayBadge').textContent = done + '/' + total;
+    document.getElementById('dayProgressBar').style.width = pct + '%';
+    document.getElementById('dayProgressPct').textContent = pct + '%';
+
+    state.habits.forEach(h => {
+      const isDone = h.days.includes(TODAY_D);
+      const li = document.createElement('li');
+      li.className = 'habit-item' + (isDone ? ' done' : '');
+      li.innerHTML =
+        `<span class="check">${isDone ? '✅' : '⬜'}</span>` +
+        `<span class="emoji">${h.emoji}</span>` +
+        `<span class="name">${h.name}</span>` +
+        `<button class="remove-btn" data-id="${h.id}" title="Eliminar">✕</button>`;
+      li.addEventListener('click', () => toggleToday(h.id));
+      li.querySelector('.remove-btn').addEventListener('click', e => {
+        e.stopPropagation();
+        removeHabit(h.id);
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  function renderGrid() {
+    const days  = monthDays();
+    const head  = document.getElementById('tableHead');
+    const body  = document.getElementById('tableBody');
+    const bars  = document.getElementById('summaryBars');
+    const month = TODAY.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    document.getElementById('monthTitle').textContent = '📅 ' + month.charAt(0).toUpperCase() + month.slice(1);
+
+    // Header row
+    head.innerHTML = '';
+    const hRow = document.createElement('tr');
+    const thH  = document.createElement('th');
+    thH.className = 'habit-th';
+    thH.textContent = 'Hábito';
+    hRow.appendChild(thH);
+    days.forEach(d => {
+      const th = document.createElement('th');
+      th.textContent = d;
+      if (d === TODAY_D) th.className = 'today-col';
+      hRow.appendChild(th);
+    });
+    head.appendChild(hRow);
+
+    // Body rows
+    body.innerHTML = '';
+    state.habits.forEach(h => {
+      const tr = document.createElement('tr');
+      const tdName = document.createElement('td');
+      tdName.className = 'habit-name-td';
+      tdName.textContent = h.emoji + ' ' + h.name;
+      tr.appendChild(tdName);
+      days.forEach(d => {
+        const td = document.createElement('td');
+        td.className = 'day-cell' +
+          (h.days.includes(d) ? ' done' : '') +
+          (d > TODAY_D ? ' future' : '') +
+          (d === TODAY_D ? ' today-col' : '');
+        if (h.days.includes(d)) td.textContent = '✓';
+        if (d <= TODAY_D) td.addEventListener('click', () => toggleDay(h.id, d));
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+
+    // Summary bars
+    bars.innerHTML = '<div class="summary-spacer"></div>';
+    days.forEach(d => {
+      const total = state.habits.length;
+      const done  = state.habits.filter(h => h.days.includes(d)).length;
+      const pct   = total ? Math.round(done / total * 100) : 0;
+      const col   = document.createElement('div');
+      col.className = 'summary-col';
+      col.title = `Día ${d}: ${pct}%`;
+      const bar = document.createElement('div');
+      bar.className = 'summary-bar' + (pct >= 80 ? ' green' : pct >= 40 ? ' yellow' : pct > 0 ? ' red' : '');
+      bar.style.height = pct + '%';
+      col.appendChild(bar);
+      bars.appendChild(col);
+    });
+  }
+
+  function render() {
+    renderHeader();
+    renderChecklist();
+    renderGrid();
+  }
+
+  function toggleToday(id) {
+    const h = state.habits.find(h => h.id === id);
+    if (!h) return;
+    const i = h.days.indexOf(TODAY_D);
+    if (i > -1) h.days.splice(i, 1); else h.days.push(TODAY_D);
+    save(); render();
+  }
+
+  function toggleDay(id, day) {
+    const h = state.habits.find(h => h.id === id);
+    if (!h) return;
+    const i = h.days.indexOf(day);
+    if (i > -1) h.days.splice(i, 1); else h.days.push(day);
+    save(); render();
+  }
+
+  function removeHabit(id) {
+    state.habits = state.habits.filter(h => h.id !== id);
+    save(); render();
+  }
+
+  function addHabit(name, emoji) {
+    if (!name.trim()) return;
+    state.habits.push({ id: Date.now(), name: name.trim(), emoji: emoji || '⭐', days: [] });
+    save(); render();
+  }
+
+  // Wiring add form
+  const toggleBtn   = document.getElementById('toggleAddBtn');
+  const addForm     = document.getElementById('addForm');
+  const confirmBtn  = document.getElementById('confirmAddBtn');
+  const nameInput   = document.getElementById('newName');
+  const emojiInput  = document.getElementById('newEmoji');
+
+  toggleBtn.addEventListener('click', () => {
+    const open = !addForm.classList.contains('hidden');
+    addForm.classList.toggle('hidden', open);
+    toggleBtn.textContent = open ? '+ Agregar hábito' : '✕ Cancelar';
+  });
+
+  confirmBtn.addEventListener('click', () => {
+    addHabit(nameInput.value, emojiInput.value);
+    nameInput.value = '';
+    emojiInput.value = '⭐';
+    addForm.classList.add('hidden');
+    toggleBtn.textContent = '+ Agregar hábito';
+  });
+
+  nameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmBtn.click();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
